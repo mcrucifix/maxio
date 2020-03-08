@@ -8,6 +8,11 @@
 # 
 # requires: pypdf
 
+# i did not manage so far to transfer bookmarks with the pypdf
+# but pdftk can do that
+# pdftk 612a8ea8-b7b8-4a1d-9ecc-1c8d313de0b0.pdf dump_data output tst.txt
+# pdftk ../lphys2264.pdf.pdf update_info tst.txt output out.pdf
+
 import json, os
 import subprocess
 import sys
@@ -61,11 +66,14 @@ print(Annotated)
 
 pdf_file = open(pdf_filepath, 'rb') 
 pr = PyPDF2.PdfFileReader(pdf_file)
+pr_outline = pr.outlines
 a = pr.documentInfo
 
 
 out = PyPDF2.PdfFileWriter()
 
+
+#for  dest in pr.getNamedDestinations():
 for i in range(pageCount):
   pageNumber = i
   page = pr.getPage(pageNumber)
@@ -107,7 +115,25 @@ for i in range(pageCount):
       page.mergeRotatedScaledTranslatedPage(overlay,0,1.,0,0)
   
   out.addPage(page)
-  
+
+# print ( pr.getPage(1)['/Resources'] )
+ 
+# for  dest in pr.getOutlines():
+#      # out.addLink(dest.title, 1, fit=dest.typ, rect=PyPDF2.generic.RectangleObject([dest.left,dest.top,dest.left,dest.top]))
+#      # out.addLink(dest.title, int(1), int(1), [1,1,1,1])
+#      # out.addBookmark(dest.title,int(1))
+#      print (dest)
+#      print ('oo')
+#      print (dest['/Title'])
+#      print ('ii')
+#      # out.addBookmark(dest['/Title'],0)
+#      out.addBookmark("basic notions", 0)
+# # out.cloneReaderDocumentRoot(pr)
+# 
+
+
+# out.cloneReaderDocumentRoot(pr)
+out.setPageMode('/UseOutlines')
 with open(os.path.join(cwd,outputpdfname), 'wb') as output_file:
   out.write(output_file)
 
