@@ -22,6 +22,9 @@ __version__ = "0.0.2.1"
 # Size
 default_x_width = 1404
 default_y_width = 1872
+# if landscape
+# default_y_width = 1404
+# default_x_width = 1872
 
 # Mappings
 stroke_colour = {
@@ -171,6 +174,28 @@ def rm2svg(input_file, output_name, coloured_annotations=False,
             elif pen == 7: # Pencil-Sharp
                 width = 16 * width - 27
                 opacity = 0.9
+            elif pen == 12: # Paintbrush
+                width = 30 * width - 27
+                opacity = 1.0
+            elif pen == 13: # Mechanical Pencil
+                width = 16 * width - 27
+                opacity = 0.9
+            elif pen == 14: # Pencil
+                width = 16 * width - 27
+                opacity = 0.9
+            elif pen == 15: # Ballpoint
+                width = 16 * width - 27
+                opacity = 0.9
+            elif pen == 16: # Marker
+                width = 16 * width - 27
+                opacity = 0.9
+            elif pen == 17: # Pencil-Sharp
+                width = 16 * width - 27
+            elif pen == 18: # Highlighter
+                width = 45 * width - 27
+                opacity = 0.4
+                if coloured_annotations:
+                  colour = 3
             elif pen == 8: # Erase area
                 opacity = 0.
             else: 
@@ -187,15 +212,28 @@ def rm2svg(input_file, output_name, coloured_annotations=False,
                 fmt = '<ffffff'
                 xpos, ypos, pressure, tilt, i_unk2, j_unk2 = struct.unpack_from(fmt, data, offset); offset += struct.calcsize(fmt)
                 # print('(x,y)=({},{})'.format(xpos,ypos))
+                # if landscape
+                # ypos2 = ypos
+                # ypos = xpos
+                # xpos = ypos2
                 #xpos += 60
                 #ypos -= 20
                 ratio = (y_width/x_width)/(1872/1404)
+                # if landscape
+                # ratio = (y_width/x_width)/(1404/1872)
+                #print ("ratio!",ratio)
                 if ratio > 1:
-                    xpos = ratio*((xpos*x_width)/1404)
-                    ypos = (ypos*y_width)/1872
+                   xpos = ratio*((xpos*x_width)/1404)
+                   ypos = (ypos*y_width)/1872
+                #  if landscape
+                #    xpos = ratio*((xpos*x_width)/1872)
+                #    ypos = (ypos*y_width)/1404
                 else:
                     xpos = (xpos*x_width)/1404
                     ypos = (1/ratio)*(ypos*y_width)/1872
+                #  if landscape
+                #    xpos = (xpos*x_width)/1872
+                #    ypos = (1/ratio)*(ypos*y_width)/1404
                 if pen == 0:
                     if 0 == segment % 8:
                         segment_width = (5. * tilt) * (6. * width - 10) * (1 + 2. * pressure * pressure * pressure)
