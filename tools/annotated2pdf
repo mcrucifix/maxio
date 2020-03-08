@@ -2,7 +2,7 @@
 
 # Author: M. Crucifix
 # DEVELOPMENT. DO NOT USE !!!
-# needs to be run from within the unzipped directory
+# takes the zip directory as argument but does not perform any check !
 # not widely tested yet
 # 
 # 
@@ -14,6 +14,25 @@ import sys
 import PyPDF2
 from rM2svg import rm2svg
 from pathlib import Path
+import tempfile
+import sys
+import zipfile
+import shutil
+
+zipname =  sys.argv[1]
+print ('zipname',zipname)
+tdir = tempfile.mkdtemp()
+
+base=os.path.basename(zipname)
+outputpdfname = os.path.splitext(base)[0] + '.pdf'
+
+
+with zipfile.ZipFile(zipname, 'r') as zip_ref:
+    zip_ref.extractall(tdir)
+
+cwd = os.getcwd()
+
+os.chdir(tdir)
 
 # find the content name
 
@@ -89,6 +108,7 @@ for i in range(pageCount):
   
   out.addPage(page)
   
-with open('out.pdf', 'wb') as output_file:
+with open(os.path.join(cwd,outputpdfname), 'wb') as output_file:
   out.write(output_file)
 
+os.chdir(cwd)
