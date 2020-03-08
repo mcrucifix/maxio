@@ -83,8 +83,8 @@ def main():
 def set_coloured_annots():
     global stroke_colour
     stroke_colour = {
-        0: "blue",
-        1: "red",
+        0: "red",
+        1: "green",
         2: "white",
         3: "yellow"
     }
