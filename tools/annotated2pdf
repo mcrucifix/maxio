@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+
+# Author: M. Crucifix
+# DEVELOPMENT. DO NOT USE !!!
+# needs to be run from within the unzipped directory
+# not widely tested yet
+# 
+# 
+# requires: pypdf
+
+import json, os
+import subprocess
+import sys
+import PyPDF2
+from rM2svg import rm2svg
+from pathlib import Path
+
+# find the content name
+
+filename = os.path.basename([f for f in os.listdir('.') if f.endswith('.content')][0]).split(".")[0]
+
+content_filepath = (filename + '.content')
+pdf_filepath = (filename + '.pdf')
+
+with open(content_filepath, 'r') as content_file:
+   j=json.loads(content_file.read())
+
+orientation = j['orientation']
+pageCount   = j['pageCount']
+transform   = j['transform']
+
+Annotated  = [False]*pageCount
+
+
+# check which pages have been annotated (one layer only)
+for i in range(pageCount):
+    overlay_filepath = (filename + '/{:d}.rm'.format(i))
+    print (overlay_filepath)
+    Annotated[i] = Path(overlay_filepath).is_file()
+
+print(Annotated)
+
+pdf_file = open(pdf_filepath, 'rb') 
+pr = PyPDF2.PdfFileReader(pdf_file)
+a = pr.documentInfo
+
+
+out = PyPDF2.PdfFileWriter()
+
+for i in range(pageCount):
+  pageNumber = i
+  page = pr.getPage(pageNumber)
+
+  if Annotated[i]:
+    overlay_filepath = (filename + '/{:d}.rm'.format(pageNumber))
+    svg_filepath = (filename + '/{:d}.svg'.format(pageNumber))
+    pdf_filepath = ('{:d}.pdf'.format(pageNumber))
+    rm2svg (overlay_filepath,svg_filepath,coloured_annotations=True)
+    subprocess.call(['svg2pdf', svg_filepath,pdf_filepath])
+    
+    media = page.mediaBox
+    pageWidth = media.upperRight[0]
+    pageHeight = media.upperRight[1]
+    overlay_file = open(pdf_filepath, 'rb') 
+    overlay = PyPDF2.PdfFileReader(overlay_file).getPage(0)
+    
+    width  = overlay.trimBox.upperRight[1]
+    height = overlay.trimBox.upperRight[0]
+    
+    # overlay.addTransformation(ctm)
+    
+    if (orientation == 'landscape'): 
+          overlay.scale(float(pageWidth)/float(width),
+                        float(pageWidth)/float(width))
+          overlay = overlay.rotateClockwise(90)
+    else:
+          h=float(pageHeight)/float(width)
+          w=float(pageWidth)/float(height)
+          overlay.scale(h,h)
+    
+    print (width)
+    print (height)
+    
+    
+    if (orientation == 'landscape'): 
+      page.mergeRotatedScaledTranslatedPage(overlay,-90,1.0,0,pageHeight)
+    else:
+      page.mergeRotatedScaledTranslatedPage(overlay,0,1.,0,0)
+  
+  out.addPage(page)
+  
+with open('out.pdf', 'wb') as output_file:
+  out.write(output_file)
+
